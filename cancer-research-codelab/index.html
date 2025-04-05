@@ -1,0 +1,297 @@
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Building an AI-Powered Cancer Research Assistant</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+    .architecture-diagram {
+      max-width: 100%;
+      height: auto;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14" ga4id=""></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  codelab-ga4id=""
+                  id="cancer-research-assistant"
+                  title="Building an AI-Powered Cancer Research Assistant"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Overview" duration="10">
+        <h2 class="checklist" is-upgraded>What you&#39;ll learn</h2>
+<ul class="checklist">
+<li>Setting up the development environment</li>
+<li>Implementing RAG for medical literature analysis</li>
+<li>Integrating Snowflake for data processing</li>
+<li>Creating web scraping agents</li>
+<li>Building a Streamlit interface</li>
+<li>Deploying the application</li>
+</ul>
+<h2 is-upgraded>Prerequisites</h2>
+<ul>
+<li>Python 3.12 or higher</li>
+<li>Basic understanding of machine learning</li>
+<li>Familiarity with FastAPI and Streamlit</li>
+<li>Snowflake account</li>
+<li>OpenAI API key</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="System Architecture" duration="5">
+        <h2>High-Level Architecture</h2>
+        <p>The Cancer Research Assistant is built with a modular architecture consisting of three main components:</p>
+        
+        <pre class="architecture-diagram">
+┌──────────────────────────────────────────────────────────────┐
+│                     Frontend (Streamlit)                      │
+└─────────────────────────────┬────────────────────────────────┘
+                              │
+┌─────────────────────────────▼────────────────────────────────┐
+│                         FastAPI Server                        │
+└───────┬─────────────────────┬────────────────────────┬───────┘
+        │                     │                        │
+┌───────▼───────┐    ┌───────▼───────┐        ┌───────▼───────┐
+│   RAG Agent    │    │ Snowflake Agent│        │   Web Agent   │
+└───────┬───────┘    └───────┬───────┘        └───────┬───────┘
+        │                    │                         │
+┌───────▼───────┐    ┌───────▼───────┐        ┌───────▼───────┐
+│OpenAI/LangChain│    │   Snowflake   │        │External APIs  │
+└───────────────┘    └───────────────┘        └───────────────┘</pre>
+
+        <h3>Component Details</h3>
+        <ul>
+          <li><strong>Frontend Layer</strong>
+            <ul>
+              <li>Streamlit-based user interface</li>
+              <li>Interactive dashboards and visualizations</li>
+              <li>PDF report generation</li>
+            </ul>
+          </li>
+          <li><strong>Backend Layer</strong>
+            <ul>
+              <li>FastAPI server for API endpoints</li>
+              <li>Request handling and response formatting</li>
+              <li>Authentication and authorization</li>
+            </ul>
+          </li>
+          <li><strong>Agent Layer</strong>
+            <ul>
+              <li>RAG Agent: Medical literature analysis</li>
+              <li>Snowflake Agent: Data processing and analytics</li>
+              <li>Web Agent: External data collection</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>Data Flow</h3>
+        <pre class="architecture-diagram">
+User Request → Frontend → FastAPI → Agents → External Services
+       ↑                                            │
+       └────────────────── Response ───────────────┘</pre>
+      </google-codelab-step>
+    
+      <google-codelab-step label="Environment Setup" duration="5">
+        <p>Let&#39;s set up our development environment.</p>
+<h2 is-upgraded>Install Required Packages</h2>
+<pre><code language="language-bash" class="language-bash"># Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+</code></pre>
+<h2 is-upgraded>Configure Environment Variables</h2>
+<p>Create a <code>.env</code> file:</p>
+<pre><code language="language-env" class="language-env">OPENAI_API_KEY=your_openai_api_key
+SNOWFLAKE_USER=your_snowflake_user
+SNOWFLAKE_PASSWORD=your_snowflake_password
+SNOWFLAKE_ACCOUNT=your_snowflake_account
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Implementing RAG Agent" duration="15">
+        <p>The RAG (Retrieval-Augmented Generation) agent handles medical literature analysis.</p>
+<h2 is-upgraded>Code Implementation</h2>
+<pre><code language="language-python" class="language-python">from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+
+class RAGAgent:
+    def __init__(self):
+        self.embeddings = OpenAIEmbeddings()
+        # ... rest of the implementation
+</code></pre>
+<h2 is-upgraded>Key Components</h2>
+<ul>
+<li>Document loading and processing</li>
+<li>Vector store creation</li>
+<li>Question-answering functionality</li>
+<li>Research summary generation</li>
+</ul>
+
+<h2 is-upgraded>RAG Agent Architecture</h2>
+<pre class="architecture-diagram">
+┌─────────────────────┐
+│     RAG Agent      │
+├─────────────────────┤
+│ - Document Loading │
+│ - Text Splitting   │
+│ - Embedding        │
+│ - Vector Storage   │
+│ - Query Processing │
+└────────┬────────┬──┘
+         │        │
+┌────────▼──┐ ┌──▼────────┐
+│  OpenAI   │ │  FAISS    │
+└───────────┘ └───────────┘</pre>
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Snowflake Integration" duration="15">
+        <p>Set up the Snowflake agent for data processing.</p>
+<h2 is-upgraded>Code Implementation</h2>
+<pre><code language="language-python" class="language-python">import snowflake.connector
+import pandas as pd
+
+class SnowflakeAgent:
+    def __init__(self):
+        self.conn = self._get_snowflake_connection()
+        # ... rest of the implementation
+</code></pre>
+<h2 is-upgraded>Data Processing</h2>
+<ul>
+<li>Cancer statistics retrieval</li>
+<li>Treatment cost analysis</li>
+<li>Regional data analysis</li>
+</ul>
+
+<h2 is-upgraded>Snowflake Data Flow</h2>
+<pre class="architecture-diagram">
+┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+│  Raw Data      │ → │  Snowflake ETL │ → │ Analytics Data  │
+└────────────────┘    └────────────────┘    └────────────────┘
+       │                      │                     │
+       └──────────────────────┴─────────────────────┘
+                            │
+                    ┌───────▼──────┐
+                    │ Visualization │
+                    └───────────────┘</pre>
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Web Scraping Agent" duration="15">
+        <p>Implement web scraping for real-time medical data.</p>
+<h2 is-upgraded>Code Implementation</h2>
+<pre><code language="language-python" class="language-python">import requests
+from bs4 import BeautifulSoup
+
+class WebAgent:
+    def __init__(self):
+        self.headers = {
+            &#39;User-Agent&#39;: &#39;Mozilla/5.0...&#39;
+        }
+        # ... rest of the implementation
+</code></pre>
+<h2 is-upgraded>Features</h2>
+<ul>
+<li>Clinical trials search</li>
+<li>Medical literature retrieval</li>
+<li>Treatment center information</li>
+</ul>
+
+<h2 is-upgraded>Web Agent Architecture</h2>
+<pre class="architecture-diagram">
+┌────────────────┐    ┌────────────────┐    ┌────────────────┐
+│  PubMed API    │    │   WHO API      │    │ Clinical Trials│
+└───────┬────────┘    └───────┬────────┘    └───────┬────────┘
+        │                     │                      │
+┌───────▼─────────────────────▼──────────────────────▼───────┐
+│                        Web Agent                            │
+├──────────────────────────────────────────────────────────┤
+│  - Data Collection                                         │
+│  - Data Transformation                                     │
+│  - Rate Limiting                                          │
+│  - Error Handling                                         │
+└──────────────────────────────────────────────────────────┘</pre>
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Building the Frontend" duration="20">
+        <p>Create an interactive Streamlit interface.</p>
+<h2 is-upgraded>Code Implementation</h2>
+<pre><code language="language-python" class="language-python">import streamlit as st
+import plotly.express as px
+
+def main():
+    st.title(&#34;Cancer Research Assistant&#34;)
+    # ... rest of the implementation
+</code></pre>
+<h2 is-upgraded>Key Features</h2>
+<ul>
+<li>Interactive dashboards</li>
+<li>Data visualization</li>
+<li>PDF report generation</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Deployment" duration="10">
+        <p>Deploy the application to production.</p>
+<h2 is-upgraded>Steps</h2>
+<ol type="1">
+<li>Set up FastAPI server</li>
+<li>Configure cloud deployment</li>
+<li>Set up monitoring</li>
+<li>Enable security features</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next Steps" duration="5">
+        <h2 is-upgraded>Future Enhancements</h2>
+<ul>
+<li>Add more data sources</li>
+<li>Implement advanced analytics</li>
+<li>Enhance visualization capabilities</li>
+<li>Add user authentication</li>
+</ul>
+<h2 is-upgraded>Resources</h2>
+<ul>
+<li><a href="https://github.com/yourusername/nvidia-research-assistant" target="_blank">Project GitHub Repository</a></li>
+<li><a href="https://your-docs-url.com" target="_blank">Documentation</a></li>
+<li><a href="https://github.com/yourusername/nvidia-research-assistant/issues" target="_blank">Issue Tracker</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
